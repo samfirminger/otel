@@ -5,7 +5,6 @@ import { diagLogLevelFromString } from '@opentelemetry/core';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
 import { ATTR_DEPLOYMENT_ENVIRONMENT_NAME } from '@opentelemetry/semantic-conventions/incubating';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { getEnvironment, getOtelLogLevel, getServiceName, getServiceVersion } from './utils';
 
 diag.setLogger(new DiagConsoleLogger(), diagLogLevelFromString(getOtelLogLevel()));
@@ -25,14 +24,9 @@ const instrumentations = getNodeAutoInstrumentations({
   '@opentelemetry/instrumentation-runtime-node': { enabled: false },
 });
 
-const traceExporter = new OTLPTraceExporter({
-  url: 'http://localhost:4318/v1/traces',
-});
-
 const sdk = new NodeSDK({
   resource,
   instrumentations,
-  traceExporter,
 });
 
 try {
