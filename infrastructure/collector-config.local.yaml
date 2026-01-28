@@ -1,0 +1,64 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    # batch metrics before sending to reduce API usage
+    send_batch_max_size: 200
+    send_batch_size: 200
+    timeout: 5s
+
+  # Add resource detection for local development
+  resource:
+    attributes:
+      - key: deployment.environment
+        value: local
+        action: upsert
+
+exporters:
+  # Console exporter for local development - outputs to collector logs
+  debug:
+    verbosity: detailed
+    sampling_initial: 999
+    sampling_thereafter: 1
+
+  # Jaeger exporter for trace visualization
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+
+  # Optional: Uncomment to export to Google Cloud from local dev
+  # Requires GOOGLE_APPLICATION_CREDENTIALS environment variable
+  # googlecloud:
+  # googlemanagedprometheus:
+
+extensions:
+  health_check:
+    endpoint: "0.0.0.0:13133"
+
+  # Optional zpages extension for debugging
+  #https://github.com/open-telemetry/opentelemetry-collector/tree/main/extension/zpagesextension
+  zpages:
+    endpoint: "0.0.0.0:55679"
+
+service:
+  extensions: [health_check, zpages]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [resource, batch]
+      exporters: [debug, otlp/jaeger]
+    metrics:
+      receivers: [otlp]
+      processors: [resource, batch]
+      exporters: [debug]
+    logs:
+      receivers: [otlp]
+      processors: [resource, batch]
+      exporters: [debug]
