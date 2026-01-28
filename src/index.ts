@@ -2,25 +2,24 @@ import "./telemetry/instrumentation";
 
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
-import { httpInstrumentationMiddleware } from '@hono/otel';
-import { getServiceName, getServiceVersion } from './telemetry';
+import { httpInstrumentationMiddleware } from "@hono/otel";
+import { getServiceName, getServiceVersion } from "./telemetry";
 
-const app = new Hono();
-
-app.use('*', httpInstrumentationMiddleware({
-  serviceName: getServiceName(),
-  serviceVersion: getServiceVersion(),
-}));
-
-app
+const app = new Hono()
+  .use(
+    "*",
+    httpInstrumentationMiddleware({
+      serviceName: getServiceName(),
+      serviceVersion: getServiceVersion(),
+    }),
+  )
   .get("/", (c) => {
     return c.text("healthy");
   })
-
   .get("/ping", (c) => {
     return c.text("Hello Hono!");
   })
-  .get('/error', (c) => {
+  .get("/error", (c) => {
     return c.text("Something went wrong", 400);
   });
 
